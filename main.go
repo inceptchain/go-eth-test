@@ -18,24 +18,25 @@ import (
 func main() {
 	//client, err := ethclient.Dial("https://ropsten.infura.io/NAZ50S21bUu0MG5BSxMx") //non-production only
 	//client, err := ethclient.Dial("wss://ropsten.infura.io/v3/NAZ50S21bUu0MG5BSxMx") //non-production only 
-	client, err := ethclient.Dial("https://ropsten.infura.io/v3/db218500773c4d6cbe2844e0d40673b5") //non-production only
+	//client, err := ethclient.Dial("https://ropsten.infura.io/v3/db218500773c4d6cbe2844e0d40673b5") //non-production only
 	//client, err := ethclient.Dial("/home/user/.ethereum/geth.ipc") //for when running a local geth client
-	//client, err := ethclient.Dial("http://localhost:8545") //local testing only
+	client, err := ethclient.Dial("http://localhost:8545") //local testing only
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("client err: ", err)
 	}
 
 	fmt.Println("We have a connection")
 
-	header, err := client.HeaderByNumber(context.Background(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// header, err := client.HeaderByNumber(context.Background(), nil)
+	// if err != nil {
+	// 	log.Fatalf("header error: ",err)
+	// }
 
-	fmt.Println(header.Number.String())
+	// fmt.Println(header.Number.String())
 
-	tokenAddress := common.HexToAddress("0xe8dd269b096382cdcab10ab5b6c188a2d05a9300")
+	tokenAddress := common.HexToAddress("0xe8dd269b096382cdcab10ab5b6c188a2d05a9300") 
+	//tokenAddress := common.HexToAddress("0x22E6a5341d8E92c08d2A565F636d95C3D7449238")
 	instance, err := token.NewToken(tokenAddress, client)
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +49,8 @@ func main() {
 
 	fmt.Printf("name: %s\n", name)
 
-	privateKey, err := crypto.HexToECDSA("B8FDDA31565B2A620BF391EDD3F844A9F4FDB5A3411DE80BD223EE0EA5DC7C47")
+	//privateKey, err := crypto.HexToECDSA("d969cddda2068ce50b71def0754c19d83b329c9853c7c08413248b97a4844376")//ganache-cli
+	privateKey, err := crypto.HexToECDSA("B8FDDA31565B2A620BF391EDD3F844A9F4FDB5A3411DE80BD223EE0EA5DC7C47")//0x7A150f31819a002e1322721F9B0bEbEe713edaA9
 	//privateKey, err := crypto.HexToECDSA("B71F491BF9DAC623AF2B87B66B8325B5058AAB27AB3AEA133DF240F74E671EE1")//vlad pkey
 	if err != nil {
   		log.Fatal(err)
@@ -60,18 +62,37 @@ func main() {
   		log.Fatal("error casting public key to ECDSA")
 	}
 
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	addressCheck := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
-  		log.Fatal(err)
+  		log.Fatalf("nonce error: ",err)
 	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
   		log.Fatal(err)
 	}
+
+	// auth := bind.NewKeyedTransactor(privateKey)
+	// auth.Nonce = big.NewInt(int64(nonce))
+	// auth.Value = big.NewInt(0)
+	// auth.GasLimit = uint64(3000000)
+	// auth.GasPrice = gasPrice
+	// auth.Context = nil 
+
+	// //backend := 
+
+	// //input := "1.0"
+	// address, tx, instance, err := token.DeployToken(auth, client)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// fmt.Println(address.Hex())
+	// fmt.Println(tx.Hash().Hex())
+	// _ = instance
 	/*
 		struct Structure {
 			uint number
@@ -82,8 +103,8 @@ func main() {
 	//put something into mapping(address => Structure)
 
 	fmt.Println(nonce)
-	fmt.Println(fromAddress)//how do I make this into a normal address?
-	fmt.Println(address)//how do I make this into a normal address?
+	fmt.Println(fromAddress)
+	fmt.Println(addressCheck)
 	fmt.Println(gasPrice)
 
 	// value := big.NewInt(1000000000000000000)
