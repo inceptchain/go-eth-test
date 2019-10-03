@@ -17,13 +17,14 @@ contract MappingTest {
 	event LogSetBool(bytes32 value, bool boolVal);
 
 	constructor(string memory _name)
-		external
+		public
 	{
 		owner = msg.sender;
 		name = _name;
 	}
 
 	function getOwner()
+	    view
 		public
 		returns (address)
 	{
@@ -42,7 +43,7 @@ contract MappingTest {
 	function setBytesBool(bytes32 value, bool setBool)//might need to check to see what happens when you use string "true"/"false"
 		public
 	{
-		bytes32[value] = setBool;
+		bytesTest[value] = setBool;
 		emit LogSetBool(value, setBool);
 	}
 	

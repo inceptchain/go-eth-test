@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"context"
+	//"context"
 	"github.com/ethereum/go-ethereum/common"
 	//"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -12,7 +12,8 @@ import (
 	"log"
 	//"math/big"
 
-	token "./token"
+	//token "./token"
+	mapping "./mapping" 
 )
 
 func main() {
@@ -23,10 +24,13 @@ func main() {
 	client, err := ethclient.Dial("http://localhost:8545") //local testing only
 
 	if err != nil {
-		log.Fatalf("client err: ", err)
+		log.Fatalf("client err: %v", err)
 	}
 
 	fmt.Println("We have a connection")
+	
+	//exit infura or local connection
+	defer client.Close() //necessary or not?
 
 	// header, err := client.HeaderByNumber(context.Background(), nil)
 	// if err != nil {
@@ -35,22 +39,24 @@ func main() {
 
 	// fmt.Println(header.Number.String())
 
-	tokenAddress := common.HexToAddress("0xe8dd269b096382cdcab10ab5b6c188a2d05a9300") 
-	//tokenAddress := common.HexToAddress("0x22E6a5341d8E92c08d2A565F636d95C3D7449238")
-	instance, err := token.NewToken(tokenAddress, client)
+	mappingAddress := common.HexToAddress("0x4d86803ad13dfd01da8e745652775eaac7dcdfdf")//
+	//tokenAddress := common.HexToAddress("0xe8dd269b096382cdcab10ab5b6c188a2d05a9300")//ganache-cli changes every restart of ganache
+	//tokenAddress := common.HexToAddress("0x22E6a5341d8E92c08d2A565F636d95C3D7449238")//testnet
+	//instance, err := token.NewToken(tokenAddress, client)
+	instance, err := mapping.NewMapping(mappingAddress, client)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("instance err: %v", err)
 	}
 
 	name, err := instance.Name(&bind.CallOpts{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("name err: %v", err)
 	}
 
 	fmt.Printf("name: %s\n", name)
 
-	//privateKey, err := crypto.HexToECDSA("d969cddda2068ce50b71def0754c19d83b329c9853c7c08413248b97a4844376")//ganache-cli
-	privateKey, err := crypto.HexToECDSA("B8FDDA31565B2A620BF391EDD3F844A9F4FDB5A3411DE80BD223EE0EA5DC7C47")//0x7A150f31819a002e1322721F9B0bEbEe713edaA9
+	privateKey, err := crypto.HexToECDSA("c1b3b8dac7cb70e62d2dcf313c58ddb27d175d83a76f28c7fa7fd86c9db4e3a1")//ganache-cli pkey
+	//privateKey, err := crypto.HexToECDSA("B8FDDA31565B2A620BF391EDD3F844A9F4FDB5A3411DE80BD223EE0EA5DC7C47")//0x7A150f31819a002e1322721F9B0bEbEe713edaA9
 	//privateKey, err := crypto.HexToECDSA("B71F491BF9DAC623AF2B87B66B8325B5058AAB27AB3AEA133DF240F74E671EE1")//vlad pkey
 	if err != nil {
   		log.Fatal(err)
@@ -63,29 +69,87 @@ func main() {
 	}
 
 	addressCheck := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+	//fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-  		log.Fatalf("nonce error: ",err)
-	}
+	// nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	// if err != nil {
+ // 			log.Fatalf("nonce error: %v",err)
+	// }
 
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-  		log.Fatal(err)
-	}
+	// gasPrice, err := client.SuggestGasPrice(context.Background())
+	// if err != nil {
+ //  		log.Fatal(err)
+	// }
 
 	// auth := bind.NewKeyedTransactor(privateKey)
-	// auth.Nonce = big.NewInt(int64(nonce))
+	// auth.Nonce = big.NewInt(int64(2))
 	// auth.Value = big.NewInt(0)
 	// auth.GasLimit = uint64(3000000)
 	// auth.GasPrice = gasPrice
-	// auth.Context = nil 
+	//auth.Context = nil 
 
-	// //backend := 
+	addrs := common.HexToAddress("0x427a7eacc6af96571c458a1da7093c127887b857") // account(1) ganache-cli
+	
 
-	// //input := "1.0"
-	// address, tx, instance, err := token.DeployToken(auth, client)
+	/*
+		Transaction setTestData
+	*/
+	
+	// num := big.NewInt(11)
+	// phrs := "Cool Beans"
+
+	// tx, err := instance.SetTestData(auth, addrs, num, phrs)
+	// if err != nil {
+	// 	log.Fatalf("tx error: %v",err)
+	// }
+	// fmt.Printf("test data tx sent: %s\n", tx.Hash().Hex())
+
+
+	/*
+		Transaction setBytesBool
+	*/
+	
+	 value := [32]byte{}
+	 copy(value[:], []byte("whattt"))
+	
+	// tx, err := instance.SetBytesBool(auth, value, true)
+	// if err != nil {
+	// 	log.Fatalf("bytes tx error: %v",err)
+	// }
+	// fmt.Printf("tx sent: %s\n", tx.Hash().Hex())
+
+
+	result1, err := instance.AddressTest(nil, addrs)
+	if err != nil {
+		log.Fatalf("Number error: %d", err)
+	}
+	fmt.Printf("Should be number: %v\n", result1.Number)
+
+
+	result2, err := instance.AddressTest(nil, addrs)
+	if err != nil {
+		log.Fatalf("Phrase error: %v",err)
+	}
+	fmt.Printf("Should be phrase: %v\n", result2.Phrase)
+
+
+	result3, err := instance.GetOwner(nil)
+	if err != nil {
+		log.Fatalf("Get owner add: %v", err)
+	}
+	fmt.Printf("Owner address: %v\n", result3.Hex())
+
+	result4, err := instance.BytesTest(nil, value)
+	if err != nil {
+		log.Fatalf("Bytes test error: %v", err)
+	}
+	fmt.Printf("True or False: %v\n", result4)
+
+	/*
+		Deploy Contract
+	*/
+	// name := "Hello World"
+	// address, tx, instance, err := mapping.DeployMapping(auth, client, name)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
@@ -93,20 +157,12 @@ func main() {
 	// fmt.Println(address.Hex())
 	// fmt.Println(tx.Hash().Hex())
 	// _ = instance
-	/*
-		struct Structure {
-			uint number
-			string phrase
-		}
-	*/
-	//hash something into bytes32 and put it into mapping(bytes32 => bool)
-	//put something into mapping(address => Structure)
 
-	fmt.Println(nonce)
-	fmt.Println(fromAddress)
+	//fmt.Println(nonce)
+	// fmt.Println(fromAddress) 
 	fmt.Println(addressCheck)
-	fmt.Println(gasPrice)
-
+	// fmt.Println(gasPrice)
+	
 	// value := big.NewInt(1000000000000000000)
 	// gasLimit := uint64(21000)
 	// //toAddress := common.HexToAddress("0x8608e7313a107386D434d2Dbf68575315EC40ef8")
